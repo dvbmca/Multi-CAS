@@ -32,6 +32,8 @@ typedef enum
     MCA_NVM_ABV,
     MCA_NVM_TOPREAL,
     MCA_NVM_GOSPELL,
+    MCA_NVM_SUMAVISION,
+    MCA_NVM_VERIGUARD,
     MCA_NVM_AMOUNT,    
     MCA_NVM_NONE    = 0xFF,
 }MCA_NVM_TYPE_t;
@@ -47,9 +49,47 @@ typedef struct
     MCA_U8  m_au8CardlessUniqueKey[16];
 } MCA_NVM_CRYPTOGUARD_KEY_t;
 
+/*************************************************************************************
+    Function:   mca_nvram_init
+    Params:     None
+    Return:     MCA_SUCCESS if OK, other if error.
+    Desc:       Initializes the NVRAM adaptation layer.
+                The default value should be 0xFF.
+                The length of COM NVRAM is 3, Other are 64K.
+                When STB factory setting, should not change data in NVRAM.
+*************************************************************************************/
 MCA_S32 mca_nvram_init(MCA_VOID);
+
+/*************************************************************************************
+    Function:   mca_nvram_write
+    Params:     enType: 
+                u32Offset:
+                pu8WriteBuff:
+                u32Len:
+    Return:     MCA_SUCCESS if OK, other if error.
+    Desc:       Each enType has its own independent NVRAM ares.
+                Should save different enType in different ares.
+*************************************************************************************/
 MCA_S32 mca_nvram_write(MCA_NVM_TYPE_t enType, MCA_U32 u32Offset, MCA_U8 *pu8WriteBuff, MCA_U32 u32Len);
+
+/*************************************************************************************
+    Function:   mca_nvram_read
+    Params:     enType:
+                u32Offset:
+                pu8ReadBuff:
+                u32Len:
+    Return:     MCA_SUCCESS if OK, other if error.
+    Desc:       Each enType has its own independent NVRAM ares.
+                Should read data from its own corresponding area.
+*************************************************************************************/
 MCA_S32 mca_nvram_read (MCA_NVM_TYPE_t enType, MCA_U32 u32Offset, MCA_U8 *pu8ReadBuff, MCA_U32 u32Len);
+
+/*************************************************************************************
+    Function:   mca_nvram_read_cryptoguard_key
+    Params:     pstKey:
+    Return:     MCA_SUCCESS if OK, other if error.
+    Desc:       
+*************************************************************************************/
 MCA_S32 mca_nvram_read_cryptoguard_key(MCA_NVM_CRYPTOGUARD_KEY_t *pstKey);
 
 #ifdef __cplusplus

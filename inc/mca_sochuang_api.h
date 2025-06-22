@@ -28,6 +28,7 @@ extern "C " {
 typedef struct
 {
     MCA_CHAR    m_szCardNumber[MCA_SC_CARD_NUMBER_LEN_MAX];
+    MCA_U8      m_u8RegionID;
 }MCA_SochuangBaseInfo_t;
 
 typedef struct
@@ -56,6 +57,18 @@ typedef struct
     MCA_U16 m_u16Res;
     MCA_U32 m_u32Price;
 }MCA_SochuangIPPV_t;
+
+typedef struct
+{
+    MCA_U8  m_u8Position; /* 0:Top; 1:Bottom */
+    MCA_U8  m_u8FontType;
+    MCA_U8  m_u8FontSize;
+    MCA_U8  m_u8Times;
+    MCA_U32 m_u32BackgroundColor;
+    MCA_U32 m_u32FontColor;
+    MCA_U32 m_u32ContentLen;
+    MCA_U8  m_au8Content[256];
+}MCA_SochuangOSD_t;
 
 #ifdef __cplusplus
 }

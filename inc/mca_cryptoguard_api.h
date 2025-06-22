@@ -20,13 +20,19 @@ extern "C " {
 #endif
 
 #define MCA_CG_SUB_COUNT_MAX    64
+#define MCA_CG_PIN_LEN          4
 
 typedef struct
-{
-    MCA_U16  m_u16ProtocolVer;
+{    
     MCA_U32  m_u32CardNumber;
     MCA_U32  m_u32IrdNumber;    /* 00990000001 */
+    MCA_U16  m_u16ProtocolVer;
     MCA_U16  m_u16CASystemID;
+    MCA_U8   m_u8MaturityLevel;/* For the STB valid setting are from 5 to 20.
+                                        13: Parental Guidance
+                                        18: Adult
+                                        20: Erotic
+                               */
 }MCA_CryptoGuardSmcInfo_t;
 
 typedef struct
@@ -52,6 +58,29 @@ typedef struct
     MCA_U8                      m_au8Resv1[3];
     MCA_CryptoGuardEventSub_t   m_astEvent[MCA_CG_SUB_COUNT_MAX];
 }MCA_CryptoGuardSub_t;
+
+typedef struct
+{
+    MCA_CHAR  m_pin[MCA_CG_PIN_LEN]; /* "0000" */
+}MCA_CryptoGuardPIN_t;
+
+typedef struct
+{
+    MCA_CHAR  m_Old[MCA_CG_PIN_LEN]; /* "0000" */
+    MCA_CHAR  m_New[MCA_CG_PIN_LEN];
+}MCA_CryptoGuardChangePIN_t;
+
+typedef struct
+{
+    MCA_CHAR m_PIN[MCA_CX_PIN_LEN]; /* "0000" */
+    MCA_U8   m_u8MatRatLevel;       /* For the STB valid setting are from 5 to 20.
+                                        13: Parental Guidance
+                                        18: Adult
+                                        20: Erotic
+                                    */
+    MCA_U8   m_u8Res;
+    MCA_U16  m_u16Res;
+}MCA_CryptoGuardRating_t;
 
 #ifdef __cplusplus
 }

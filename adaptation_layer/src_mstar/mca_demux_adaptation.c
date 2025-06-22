@@ -60,7 +60,7 @@ static MCA_VOID mstar_dmx_capture_semaphore(MCA_VOID)
 {
     if (MCA_INVALID_HANDLE == g_hMstarDmxSemaphore)
     {
-        MS_DMX_ERR("g_hMstarDmxSemaphore is invalid!");
+        MS_DMX_ERR("Invalid semaphore handle.");
         return ;
     }
 
@@ -71,7 +71,7 @@ static MCA_VOID mstar_dmx_release_semaphore(MCA_VOID)
 {
     if (MCA_INVALID_HANDLE == g_hMstarDmxSemaphore)
     {
-        MS_DMX_ERR("g_hMstarDmxSemaphore is invalid!");
+        MS_DMX_ERR("Invalid semaphore handle.");
         return ;
     }
 
@@ -123,8 +123,8 @@ static MCA_VOID mstar_reset_filter_info(MS_FILTER_t *pstFlt)
         return;
     }
 
-    memset(pstFlt->m_au8Mask,  0x00, MCA_DMX_FILTER_MAX_DEPTH);
-    memset(pstFlt->m_au8Match, 0x00, MCA_DMX_FILTER_MAX_DEPTH);
+    mca_memset(pstFlt->m_au8Mask,  0x00, MCA_DMX_FILTER_MAX_DEPTH);
+    mca_memset(pstFlt->m_au8Match, 0x00, MCA_DMX_FILTER_MAX_DEPTH);
     pstFlt->m_u8Depth = 0;
     if (pstFlt->m_u16HwFltID != MS_INVALID_FLT_ID)
     {
@@ -243,8 +243,8 @@ MCA_S32 mca_dmx_init(MCA_VOID)
 
         for (j = 0; j < MS_FLT_NUM_MAX; j++)
         {
-            memset(g_astMstarChannel[i].m_astFltInfo[j].m_au8Mask,  0x00, MCA_DMX_FILTER_MAX_DEPTH);
-            memset(g_astMstarChannel[i].m_astFltInfo[j].m_au8Match, 0x00, MCA_DMX_FILTER_MAX_DEPTH);
+            mca_memset(g_astMstarChannel[i].m_astFltInfo[j].m_au8Mask,  0x00, MCA_DMX_FILTER_MAX_DEPTH);
+            mca_memset(g_astMstarChannel[i].m_astFltInfo[j].m_au8Match, 0x00, MCA_DMX_FILTER_MAX_DEPTH);
             g_astMstarChannel[i].m_astFltInfo[j].m_u8Depth      = 0;
             g_astMstarChannel[i].m_astFltInfo[j].m_u16HwFltID   = MS_INVALID_FLT_ID;
             g_astMstarChannel[i].m_astFltInfo[j].m_pu8SecBuff   = NULL;
@@ -861,9 +861,9 @@ void __dmx_test__()
         MS_DMX_ERR("MApi_DMX_Info(...) Error\n");
     }
 
-    memset(u8Match, 0x00, sizeof(u8Match));
-    memset(u8Mask, 0x00, sizeof(u8Mask));
-    memset(u8NMask, 0x00, sizeof(u8NMask));
+    mca_memset(u8Match, 0x00, sizeof(u8Match));
+    mca_memset(u8Mask, 0x00, sizeof(u8Mask));
+    mca_memset(u8NMask, 0x00, sizeof(u8NMask));
 
 #if 0
     //EMM 1

@@ -28,6 +28,9 @@ typedef enum
 
 /*************************************************************************************
     status: Refer to mca_error_code.h
+            MCA_SUCCESS
+            MCA_FAILURE
+            MCA_E07_ALREADY_EXIST
     pData : When enEvtType is MCA_USB_EVENT_DUMP_STB_ID, it is pointer of STB ID.
 *************************************************************************************/
 typedef void (*MCA_USB_EVENT_CB)(MCA_USB_EVENT_t enEvtType, MCA_S32 status, MCA_VOID *pData);

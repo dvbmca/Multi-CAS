@@ -126,7 +126,7 @@ static void mca_conax_app_check_pin_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT
 
 static void mca_conax_app_set_maturity_rating_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
-    MCA_U8   szError[20];
+    char     szError[20];
     MCA_S32 *ps32Status = (MCA_S32 *)pData;
 
     if (MCA_CAS_CONAX != enCASType)
@@ -177,6 +177,32 @@ static void mca_conax_app_view_parental_channel_callback(MCA_CAS_TYPE_t enCASTyp
     MCA_APP_DBG("%s View Parental Channel Reply: %s>>\n", aszCASName[enCASType], (MCA_SUCCESS == (*ps32Status))?"Success":"Fail");
 }
 
+static MCA_VOID mca_conax_app_unpair_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
+{
+    char     szError[20];
+    MCA_S32 *ps32Status = (MCA_S32 *)pData;
+
+    if (NULL == ps32Status)
+    {
+        return;
+    }
+
+    switch (*ps32Status)
+    {
+        case MCA_SUCCESS:
+            snprintf(szError, 20, "%s", "Success");
+            break;
+        case MCA_E08_NOT_SUPPORT:
+            snprintf(szError, 20, "%s", "Not Support");
+            break;
+        default:
+            snprintf(szError, 20, "%s", "Fail");
+            break;
+    }
+
+    mca_printf("%s unpair reply: %s>>\n", aszCASName[enCASType], szError);
+}
+
 MCA_S32 mca_conax_app_init(MCA_VOID)
 {
     if (MCA_CAS_CONAX != MCA_GetCASType())
@@ -192,6 +218,7 @@ MCA_S32 mca_conax_app_init(MCA_VOID)
     MCA_RegisterEvent(MCA_EVENT_CHECK_PIN,              mca_conax_app_check_pin_callback);
     MCA_RegisterEvent(MCA_EVENT_SET_MATURITY_RATING,    mca_conax_app_set_maturity_rating_callback);
     MCA_RegisterEvent(MCA_EVENT_VIEW_PARENTAL_CHANNEL,  mca_conax_app_view_parental_channel_callback);
+    MCA_RegisterEvent(MCA_EVENT_UNPAIR,                 mca_conax_app_unpair_callback);
 
     return MCA_SUCCESS;
 }

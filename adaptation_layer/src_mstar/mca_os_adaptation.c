@@ -2,6 +2,7 @@
 #include "MsCommon.h"
 #include "MsOS.h"
 #include "drvUART.h"
+#include "drvWDT.h"
 
 #include "mca_adaptation_files.h"
 
@@ -63,6 +64,12 @@ MCA_S32 MCA_OS_TaskCreate(MCA_HANDLE *const pTaskHandle, const MCA_CHAR *szName,
  //   mca_printf("<OU> [%s]Line%d: *pTaskHandle = 0x%x\n", __FUNCTION__, __LINE__, *pTaskHandle);
 
     return MCA_SUCCESS;
+}
+
+MCA_VOID mca_reboot(MCA_VOID)
+{
+    MDrv_WDT_SetTimer_ms(E_WDT_DBGLV_ALL, 10);
+    MDrv_WDT_SetIntTimer(E_WDT_DBGLV_ALL, 5);
 }
 
 MCA_VOID mca_sleep(const MCA_U32 msecs)
@@ -137,6 +144,29 @@ MCA_S32 MCA_OS_QueueReceive(const MCA_HANDLE handle, MCA_VOID *const pMsg, const
     }
 
     b8Status = MsOS_RecvFromQueue((MS_S32)handle, pMsg, u32MsgSize, &u32ActualSize, MSOS_WAIT_FOREVER);
+    if ((FALSE == b8Status) || (u32ActualSize != u32MsgSize))
+    {
+        MS_OS_ERR("MsOS_RecvFromQueue(...) = %d, u32ActualSize = %d, u32MsgSize = %d\n", b8Status, u32ActualSize, u32MsgSize);
+        return MCA_FAILURE;
+    }
+
+    return MCA_SUCCESS;
+}
+
+MCA_S32 MCA_OS_QueueReceiveTimeout(const MCA_HANDLE handle, MCA_VOID *const pMsg, const MCA_U32 u32MsgSize, const MCA_U32 u32Ms)
+{
+    MS_BOOL b8Status;
+    MS_U32  u32ActualSize;
+
+//    mca_printf("<IN> [%s]Line%d: handle = 0x%x, pMsg = 0x%x, u32MsgSize = %d\n", __FUNCTION__, __LINE__, handle, pMsg, u32MsgSize);
+
+    if (NULL == pMsg)
+    {
+        MS_OS_ERR("Bad Param: pMsg is NULL\n");
+        return MCA_FAILURE;
+    }
+
+    b8Status = MsOS_RecvFromQueue((MS_S32)handle, pMsg, u32MsgSize, &u32ActualSize, u32Ms);
     if ((FALSE == b8Status) || (u32ActualSize != u32MsgSize))
     {
         MS_OS_ERR("MsOS_RecvFromQueue(...) = %d, u32ActualSize = %d, u32MsgSize = %d\n", b8Status, u32ActualSize, u32MsgSize);

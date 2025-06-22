@@ -24,6 +24,9 @@ extern "C " {
 #define MCA_E03_WRONG_MATURITY_RATING   0x80000003
 #define MCA_E04_WRONG_PPID              0x80000004
 #define MCA_E05_INSUFFICIENT_BALANCE    0x80000005
+#define MCA_E06_TIMEOUT                 0x80000006
+#define MCA_E07_ALREADY_EXIST           0x80000007
+#define MCA_E08_NOT_SUPPORT             0x80000008
 
 #ifdef __cplusplus
 }

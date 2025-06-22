@@ -153,7 +153,7 @@ static void mca_cti_app_sub_detail_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_
 
 static void mca_cti_app_check_pin_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
-    MCA_U8   szError[20];
+    char     szError[20];
     MCA_S32 *ps32Status;
 
     if (MCA_CAS_CTI != enCASType)
@@ -181,7 +181,7 @@ static void mca_cti_app_check_pin_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_T
 
 static void mca_cti_app_change_pin_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
-    MCA_U8   szError[20];
+    char     szError[20];
     MCA_S32 *ps32Status;
 
     if (MCA_CAS_CTI != enCASType)
@@ -209,7 +209,7 @@ static void mca_cti_app_change_pin_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_
 
 static void mca_cti_app_set_maturity_rating_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
-    MCA_U8   szError[20];
+    char     szError[20];
     MCA_S32 *ps32Status;
 
     if (MCA_CAS_CTI != enCASType)
@@ -240,7 +240,7 @@ static void mca_cti_app_set_maturity_rating_callback(MCA_CAS_TYPE_t enCASType, M
 
 static void mca_cti_app_view_parental_channel_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
-    MCA_U8   szError[20];
+    char     szError[20];
     MCA_S32 *ps32Status;
 
     if (MCA_CAS_CTI != enCASType)

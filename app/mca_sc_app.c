@@ -37,7 +37,8 @@ static void mca_sc_app_smc_info_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYP
 
     mca_printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
     mca_printf("%s smart card information:    >>\n", aszCASName[enCASType]);
-    mca_printf(">> Card Number   : %s\n", pstScInfo->m_szCardNumber);
+    mca_printf(">> Card Number : %s\n", pstScInfo->m_szCardNumber);
+    mca_printf(">> Region ID   : %u\n", pstScInfo->m_u8RegionID);
     mca_printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 }
 
@@ -110,7 +111,7 @@ static void mca_sc_app_ippv_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t 
 
 static void mca_sc_app_ippv_buy_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
-    MCA_U8   szError[20];
+    char     szError[20];
     MCA_S32 *ps32Status = (MCA_S32 *)pData;
 
     if (MCA_CAS_SOCHUANG != enCASType)
@@ -143,6 +144,34 @@ static void mca_sc_app_ippv_buy_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYP
     MCA_APP_DBG("%s IPPV Buy reply: %s>>\n", aszCASName[enCASType], szError);
 }
 
+static void mca_sc_app_osd_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
+{
+    MCA_SochuangOSD_t *pstScOSDInfo = (MCA_SochuangOSD_t *)pData;
+
+    if (MCA_CAS_SOCHUANG != enCASType)
+    {
+        MCA_APP_DBG("CAS Type does not match!");
+        return ;
+    }
+    if (NULL == pstScOSDInfo)
+    {
+        MCA_APP_DBG("Parameters is NULL.\n");
+        return;
+    }
+
+    mca_printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+    mca_printf("%s OSD information:    >>\n",    aszCASName[enCASType]);
+    mca_printf(">> Position         : %u\n",     pstScOSDInfo->m_u8Position);
+    mca_printf(">> Font Type        : %u\n",     pstScOSDInfo->m_u8FontType);
+    mca_printf(">> Font Size        : %u\n",     pstScOSDInfo->m_u8FontSize);
+    mca_printf(">> Times            : %u\n",     pstScOSDInfo->m_u8Times);
+    mca_printf(">> Background Color : 0x%08x\n", pstScOSDInfo->m_u32BackgroundColor);
+    mca_printf(">> Font Color       : 0x%08x\n", pstScOSDInfo->m_u32FontColor);
+    mca_printf(">> Content Length   : %lu\n",    pstScOSDInfo->m_u32ContentLen);
+    mca_printf(">> Content          : %s\n",     pstScOSDInfo->m_au8Content);
+    mca_printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+}
+
 MCA_S32 mca_sc_app_init(MCA_VOID)
 {
     if (MCA_CAS_SOCHUANG != MCA_GetCASType())
@@ -156,6 +185,7 @@ MCA_S32 mca_sc_app_init(MCA_VOID)
     MCA_RegisterEvent(MCA_EVENT_SUB_INFO,       mca_sc_app_sub_callback);
     MCA_RegisterEvent(MCA_EVENT_IPPV,           mca_sc_app_ippv_callback);
     MCA_RegisterEvent(MCA_EVENT_IPPV_BUY,       mca_sc_app_ippv_buy_callback);
+    MCA_RegisterEvent(MCA_EVENT_OSD,            mca_sc_app_osd_callback);
 
     return MCA_SUCCESS;
 }

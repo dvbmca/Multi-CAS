@@ -27,9 +27,4 @@
 #include "mca_descrambler_adaptation.h"
 #include "mca_utils_adaptation.h"
 
-#ifdef __cplusplus
-}
-#endif
-
 #endif  //__MCA_ADAPTATION_FILES_H__
-

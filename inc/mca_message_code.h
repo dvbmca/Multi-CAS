@@ -60,7 +60,7 @@ typedef enum
     MCA_M36,
     MCA_M37,
     MCA_M38,
-    MCA_M39,
+    MCA_M39_SWITCH_CAS,                 /* M39 Switch CAS */
     MCA_M40,                                                                            // 用户准禁播设置成功
     MCA_M41,                                                                            // 用户准禁播数据读取成功
     MCA_M42,                                                                            // 用户准禁播设置时间错误

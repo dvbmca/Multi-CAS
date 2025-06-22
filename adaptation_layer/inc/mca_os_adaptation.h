@@ -35,6 +35,15 @@ MCA_S32 MCA_OS_TaskCreate(MCA_HANDLE *const pTaskHandle, const MCA_CHAR *szName,
                             MCA_TASK_FUNC_T task_func, MCA_VOID *pParam,    \
                             MCA_VOID *pStack,   \
                             MCA_U32 u32StackSize, MCA_TASK_PRIORITY_E enPri);
+
+/*************************************************************************************
+    Function:   mca_reboot
+    Params:     
+    Return:     No return value.
+    Desc:       Reboot STB.
+*************************************************************************************/
+MCA_VOID mca_reboot(MCA_VOID);
+
 /*************************************************************************************
     Function:   mca_sleep
     Params:     msecs: Milliseconds to wait.
@@ -54,6 +63,7 @@ MCA_U32  mca_timestamp(MCA_VOID);
 MCA_S32 MCA_OS_QueueCreate(MCA_HANDLE *const pQueHandle, const MCA_CHAR *szName, const MCA_U32 u32MaxMsgCout);
 MCA_S32 MCA_OS_QueueSend(const MCA_HANDLE handle, MCA_VOID *const pMsg, const MCA_U32 u32MsgSize);
 MCA_S32 MCA_OS_QueueReceive(const MCA_HANDLE handle, MCA_VOID *const pMsg, const MCA_U32 u32MsgSize);
+MCA_S32 MCA_OS_QueueReceiveTimeout(const MCA_HANDLE handle, MCA_VOID *const pMsg, const MCA_U32 u32MsgSize, const MCA_U32 u32Ms);
 
 MCA_S32 MCA_OS_SemCreate(MCA_HANDLE *const pSemHandle, const MCA_CHAR *szName, const MCA_U32 u32InitCount);
 MCA_S32 MCA_OS_SemLock(const MCA_HANDLE handle);
