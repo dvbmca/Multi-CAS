@@ -5,18 +5,14 @@
 
 #define GX_SMC_DBG(fmt, args...)        \
     do{    \
-    	mca_printf("----gx smc>[%s]Line%d: ", __FUNCTION__, __LINE__);    \
+    	mca_printf("[Gx.INFO ][%s L%d]:", __FUNCTION__, __LINE__);    \
     	mca_printf(fmt, ##args);    \
     }while(0)
 
 #define GX_SMC_ERR(fmt, args...)        \
     do{    \
-    	mca_printf("\033[1;40;31m");    \
-    	mca_printf("\n################MS SMC ERROR################\n");    \
-    	mca_printf("[%s]Line%d:\n", __FUNCTION__, __LINE__);    \
+    	mca_printf("[Gx.ERROR][%s L%d]:", __FUNCTION__, __LINE__);    \
     	mca_printf(fmt, ##args);    \
-    	mca_printf("\n############################################\n\n");    \
-    	mca_printf("\033[0m\n");\
     }while(0)
 
 #define GX_SMC_MODULE_NAME  "gx.smc"
@@ -25,22 +21,22 @@ static MCA_HANDLE   g_hGxSmcSemaphore   = MCA_INVALID_HANDLE;
 static MCA_BOOL     g_b8SmcIsInserted   = MCA_FALSE;
 static MCASMCStatusCallback g_cbSmcCb   = NULL;
 
-static MCA_VOID gx_smc_capture_semaphore(MCA_VOID)
+static MCA_VOID gx_smc_sem_wait(MCA_VOID)
 {
     if (MCA_INVALID_HANDLE == g_hGxSmcSemaphore)
     {
-        GX_SMC_ERR("Invalid semaphore handle.");
+        GX_SMC_ERR("Bad Parameter: Invalid semaphore handle!\n");
         return ;
     }
 
     MCA_OS_SemLock(g_hGxSmcSemaphore);
 }
 
-static MCA_VOID gx_smc_release_semaphore(MCA_VOID)
+static MCA_VOID gx_smc_sem_post(MCA_VOID)
 {
     if (MCA_INVALID_HANDLE == g_hGxSmcSemaphore)
     {
-        GX_SMC_ERR("Invalid semaphore handle.");
+        GX_SMC_ERR("Bad Parameter: Invalid semaphore handle!\n");
         return ;
     }
 
@@ -51,28 +47,28 @@ static MCA_VOID *gx_smartcard_task(MCA_VOID *pParam)
 {
     MCA_SMC_STATUS_t enMcaStatus;
 
-    int32_t         s32GxRet;
-    GxSciCardStatus enGxPreStatus = GXSCI_CARD_OUT;
-    GxSciCardStatus enGxNewStatus;
+    int32_t          s32GxRet;
+    GxSciCardStatus  enGxPreStatus = GXSCI_CARD_OUT;
+    GxSciCardStatus  enGxNewStatus;
 
     while (1)
     {
         mca_sleep(200);
 
-        gx_smc_capture_semaphore();
+        gx_smc_sem_wait();
         if (NULL == g_cbSmcCb)
         {
-            GX_SMC_ERR("callback is 0x%x", g_cbSmcCb);
-            gx_smc_release_semaphore();
+            GX_SMC_ERR("callback is NULL!\n");
+            gx_smc_sem_post();
             mca_sleep(400);
             continue;
         }
-        gx_smc_release_semaphore();
+        gx_smc_sem_post();
 
         s32GxRet = GxSci_GetStatus(&enGxNewStatus);
         if (s32GxRet != 0)
         {
-            GX_SMC_ERR("GxSci_GetStatus(...) = %d", s32GxRet);
+            GX_SMC_ERR("GxSci_GetStatus(...) = %d!\n", s32GxRet);
             continue;
         }
         if (enGxPreStatus == enGxNewStatus)
@@ -80,7 +76,7 @@ static MCA_VOID *gx_smartcard_task(MCA_VOID *pParam)
             continue;
         }
 
-        gx_smc_capture_semaphore();
+        gx_smc_sem_wait();
         switch (enGxNewStatus)
         {
             case GXSCI_CARD_IN:
@@ -91,7 +87,7 @@ static MCA_VOID *gx_smartcard_task(MCA_VOID *pParam)
                 enMcaStatus = MCA_SMC_UNKNOWN;g_b8SmcIsInserted = MCA_FALSE;break;
         }
         enGxPreStatus = enGxNewStatus;
-        gx_smc_release_semaphore();
+        gx_smc_sem_post();
 
         g_cbSmcCb(0, enMcaStatus);
     }
@@ -118,7 +114,7 @@ static MCA_VOID gx_configurate_smartcard(MCA_VOID)
     s32GxRet = GxSci_Setup(&stGxParam);
     if (s32GxRet != 0)
     {
-        GX_SMC_ERR("GxSci_Setup(...) = %d", s32GxRet);
+        GX_SMC_ERR("GxSci_Setup(...) = %d!\n", s32GxRet);
         return;
     }
 
@@ -133,7 +129,7 @@ static MCA_VOID gx_configurate_smartcard(MCA_VOID)
     s32GxRet = GxSci_Config(&stGxTimeParam);
     if (s32GxRet != 0)
     {
-        GX_SMC_ERR("GxSci_Config(...) = %d", s32GxRet);
+        GX_SMC_ERR("GxSci_Config(...) = %d!\n", s32GxRet);
         return;
     }
 }
@@ -149,7 +145,7 @@ MCA_S32 mca_smartcard_init(MCA_VOID)
     s32GxRet = GxSci_Open(GXSCI_HIGH_LEVEL, GXSCI_HIGH_LEVEL);
     if (s32GxRet != 0)
     {
-        GX_SMC_ERR("GxSci_Open(%d, %d) = %d", GXSCI_HIGH_LEVEL, GXSCI_HIGH_LEVEL, s32GxRet);
+        GX_SMC_ERR("GxSci_Open(%d, %d) = %d!\n", GXSCI_HIGH_LEVEL, GXSCI_HIGH_LEVEL, s32GxRet);
         return MCA_FAILURE;
     }
 
@@ -166,21 +162,21 @@ MCA_S32 mca_smartcard_init(MCA_VOID)
     s32GxRet = GxSci_Setup(&stGxParam);
     if (s32GxRet != 0)
     {
-        GX_SMC_ERR("GxSci_Setup(...) = %d", s32GxRet);
+        GX_SMC_ERR("GxSci_Setup(...) = %d!\n", s32GxRet);
         return MCA_FAILURE;
     }
 
     s32Ret = MCA_OS_SemCreate(&g_hGxSmcSemaphore, GX_SMC_MODULE_NAME, 1);
     if (MCA_SUCCESS != s32Ret)
     {
-        GX_SMC_ERR("MCA_OS_SemCreate(...) = 0x%x.", s32Ret);
+        GX_SMC_ERR("MCA_OS_SemCreate(...) = 0x%x!\n", s32Ret);
         return MCA_FAILURE;
     }
     s32Ret = MCA_OS_TaskCreate(&hTask, GX_SMC_MODULE_NAME, (MCA_TASK_FUNC_T)gx_smartcard_task,  \
                                 NULL, NULL, 18 * 1024, MCA_TASK_PRIORITY_NORMAL);
     if (MCA_SUCCESS != s32Ret)
     {
-        GX_SMC_ERR("MCA_OS_TaskCreate(...) = 0x%x.", s32Ret);
+        GX_SMC_ERR("MCA_OS_TaskCreate(...) = 0x%x!\n", s32Ret);
         return MCA_FAILURE;
     }
 
@@ -197,7 +193,7 @@ MCA_S32 mca_smartcard_reset(MCA_U8 slot, MCA_U8 *atr, MCA_U8 *pu8AtrLen)
 
     if ((NULL == atr) || (NULL == pu8AtrLen))
     {
-        GX_SMC_ERR("Bad Param: atr = 0x%x, pu8AtrLen = 0x%x!\n", atr, pu8AtrLen);
+        GX_SMC_ERR("Bad Parameter: atr = 0x%x, pu8AtrLen = 0x%x!\n", atr, pu8AtrLen);
         return MCA_FAILURE;
     }
 
@@ -215,7 +211,7 @@ MCA_S32 mca_smartcard_reset(MCA_U8 slot, MCA_U8 *atr, MCA_U8 *pu8AtrLen)
             s32GxRet = GxSci_AnalyseAtr(au8GxATR, u32AtrLen, &stGxParams);
             if (s32GxRet < 0)
             {
-                GX_SMC_ERR("GxSci_AnalyseAtr(...) = %d", s32GxRet);
+                GX_SMC_ERR("GxSci_AnalyseAtr(...) = %d!\n", s32GxRet);
             }
             else
             {
@@ -236,7 +232,7 @@ MCA_S32 mca_smartcard_reset(MCA_U8 slot, MCA_U8 *atr, MCA_U8 *pu8AtrLen)
         mca_sleep(10);
     }
 
-    GX_SMC_ERR("GxSci_Reset(...) fail \n");
+    GX_SMC_ERR("GxSci_Reset(...) fail!\n");
 
     return MCA_FAILURE;    
 }
@@ -245,27 +241,27 @@ MCA_BOOL mca_smartcard_is_inserted(MCA_U8 slot)
 {
     MCA_BOOL b8Ret;
     
-    gx_smc_capture_semaphore();
+    gx_smc_sem_wait();
     b8Ret = g_b8SmcIsInserted;
-    gx_smc_release_semaphore();
+    gx_smc_sem_post();
 
     return b8Ret;
 }
 
 MCA_S32 mca_smartcard_register_status(MCA_U8 slot, MCASMCStatusCallback cb)
 {
-    gx_smc_capture_semaphore();
+    gx_smc_sem_wait();
     g_cbSmcCb = cb;
-    gx_smc_release_semaphore();
+    gx_smc_sem_post();
 
     return MCA_SUCCESS;
 }
 
 MCA_S32 mca_smartcard_unregister_status(MCA_U8 slot, MCASMCStatusCallback cb)
 {
-    gx_smc_capture_semaphore();
+    gx_smc_sem_wait();
     g_cbSmcCb = NULL;
-    gx_smc_release_semaphore();
+    gx_smc_sem_post();
 
     return MCA_SUCCESS;
 }
@@ -279,16 +275,17 @@ MCA_S32 mca_smartcard_T0_command(MCA_U8 slot, MCA_U8 *pu8Send, MCA_U8 u8SendLen,
 
     if ((NULL == pu8Send) || (u8SendLen < 5) || (NULL == pu8Rev) || (NULL == pu16RevLen))
     {
-        GX_SMC_ERR("Bad Param: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x.", pu8Send, u8SendLen, pu8Rev, pu16RevLen);
+        GX_SMC_ERR("Bad Parameter: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x!\n", \
+                                                            pu8Send, u8SendLen, pu8Rev, pu16RevLen);
         return MCA_FAILURE;
     }
 
-    gx_smc_capture_semaphore();
+    gx_smc_sem_wait();
     s32GxRet = GxSci_Apdu(pu8Send, u8SendLen, g_au8RxBuff, &RxLen, &SW1, &SW2);
     if (0 != s32GxRet)
     {
-        GX_SMC_ERR("GxSci_Apdu(...) = %d", s32GxRet);
-        gx_smc_release_semaphore();
+        GX_SMC_ERR("GxSci_Apdu(...) = %d!\n", s32GxRet);
+        gx_smc_sem_post();
         return MCA_FAILURE;
     }
 
@@ -300,7 +297,7 @@ MCA_S32 mca_smartcard_T0_command(MCA_U8 slot, MCA_U8 *pu8Send, MCA_U8 u8SendLen,
     pu8Rev[RxLen]   = SW1;
     pu8Rev[RxLen+1] = SW2;
 
-    gx_smc_release_semaphore();    
+    gx_smc_sem_post();    
     
     return MCA_SUCCESS;
 }
@@ -311,33 +308,33 @@ MCA_S32 mca_smartcard_T14_command(MCA_U8 slot, MCA_U8 *pu8Send, MCA_U8 u8SendLen
 
     if ((NULL == pu8Send) || (0 == u8SendLen) || (NULL == pu8Rev) || (NULL == pu16RevLen))
     {
-        GX_SMC_ERR("Bad Param: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x.", pu8Send, u8SendLen, pu8Rev, pu16RevLen);
+        GX_SMC_ERR("Bad Parameter: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x!\n", \
+                                                            pu8Send, u8SendLen, pu8Rev, pu16RevLen);
         return MCA_FAILURE;
     }
 
-    gx_smc_capture_semaphore();
+    gx_smc_sem_wait();
     s32GxRet = GxSci_Write(pu8Send,u8SendLen,5000);
     if (s32GxRet < 0)
     {
-        GX_SMC_ERR("GxSci_Write(...) = %d", s32GxRet);
-        gx_smc_release_semaphore();
+        GX_SMC_ERR("GxSci_Write(...) = %d!\n", s32GxRet);
+        gx_smc_sem_post();
         return MCA_FAILURE;
     }
 
     s32GxRet = GxSci_Read(g_au8RxBuff, 2048, 5000);
     if (s32GxRet < 0)
     {
-        GX_SMC_ERR("GxSci_Read(...) = %d", s32GxRet);
-        gx_smc_release_semaphore();
+        GX_SMC_ERR("GxSci_Read(...) = %d!\n", s32GxRet);
+        gx_smc_sem_post();
         return MCA_FAILURE;
     }
 
     mca_memcpy(pu8Rev, g_au8RxBuff, s32GxRet);
     *pu16RevLen = s32GxRet;
 
-    gx_smc_release_semaphore();    
+    gx_smc_sem_post();    
     
     return MCA_SUCCESS;
 }
-
 

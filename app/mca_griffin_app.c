@@ -74,8 +74,8 @@ MCA_S32 mca_griffin_app_init(MCA_VOID)
     }
 
     MCA_RegisterEvent(MCA_EVENT_MESSAGE_CODE, mca_griffin_app_message_callback);
-    MCA_RegisterEvent(MCA_EVENT_SMC_INFO, mca_griffin_app_smc_info_callback);
-    MCA_RegisterEvent(MCA_EVENT_SUB_INFO, mca_griffin_app_sub_callback);
+    MCA_RegisterEvent(MCA_EVENT_SMC_INFO,     mca_griffin_app_smc_info_callback);
+    MCA_RegisterEvent(MCA_EVENT_SUB_INFO,     mca_griffin_app_sub_callback);
 
     return MCA_SUCCESS;
 }

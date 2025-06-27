@@ -8,18 +8,14 @@
 
 #define GX_DMX_DBG(fmt, args...)    \
     do{    \
-        mca_printf("----gx dmx>[%s]Line%d: ", __FUNCTION__, __LINE__);    \
+        mca_printf("[Gx.INFO ][%s L%d]:", __FUNCTION__, __LINE__);    \
         mca_printf(fmt, ##args);    \
     }while(0)
 
 #define GX_DMX_ERR(fmt, args...)    \
     do{    \
-        mca_printf("\033[1;40;31m");    \
-        mca_printf("\n################MS DMX ERROR################\n");    \
-        mca_printf("[%s]Line%d:\n", __FUNCTION__, __LINE__);    \
+        mca_printf("[Gx.ERROR][%s L%d]:", __FUNCTION__, __LINE__);    \
         mca_printf(fmt, ##args);    \
-        mca_printf("\n############################################\n\n");    \
-        mca_printf("\033[0m\n");\
     }while(0)
 
 #define GX_DMX_MODULE_NAME      "gx.demux.adapt"
@@ -42,50 +38,26 @@ typedef struct
 static MCA_HANDLE   g_hGxDmxSemaphore;
 static GX_CHANNEL_t g_astGxChannel[GX_DMX_CH_NUM_MAX];
 
-static MCA_VOID gx_dmx_capture_semaphore(MCA_VOID)
+static MCA_VOID gx_dmx_sem_wait(MCA_VOID)
 {
     if (MCA_INVALID_HANDLE == g_hGxDmxSemaphore)
     {
-        GX_DMX_ERR("Invalid semaphore handle.");
+        GX_DMX_ERR("Bad Parameter: Invalid semaphore handle!\n");
         return ;
     }
 
     MCA_OS_SemLock(g_hGxDmxSemaphore);
 }
 
-static MCA_VOID gx_dmx_release_semaphore(MCA_VOID)
+static MCA_VOID gx_dmx_sem_post(MCA_VOID)
 {
     if (MCA_INVALID_HANDLE == g_hGxDmxSemaphore)
     {
-        GX_DMX_ERR("Invalid semaphore handle.");
+        GX_DMX_ERR("Bad Parameter: Invalid semaphore handle!\n");
         return ;
     }
 
     MCA_OS_SemUnlock(g_hGxDmxSemaphore);
-}
-
-static MCA_VOID gx_data_dump(MCA_U8* pu8Data, MCA_U32 u32Len)
-{
-    return;
-
-    MCA_U32 i;
-
-    if ((pu8Data == NULL) || (0 == u32Len))
-    {
-        GX_DMX_ERR("Bad Param: pu8Data = 0x%x, u32Len = %d.", pu8Data, u32Len);
-        return;
-    }
-
-    for (i = 0; i < u32Len; i++)
-    {
-        mca_printf(" %02x", pu8Data[i]);
-        if ((i+1) % 10 == 0)
-        {
-            mca_printf("\n");
-        }
-    }
-
-    mca_printf("\n\n");
 }
 
 static MCA_VOID *gx_dmx_task(MCA_VOID *pParam)
@@ -102,7 +74,7 @@ static MCA_VOID *gx_dmx_task(MCA_VOID *pParam)
     pu8Section = mca_malloc(GX_SECTION_BUF_SIZE);
     if (NULL == pu8Section)
     {
-        GX_DMX_ERR("mca_malloc(%d) Error! ", GX_SECTION_BUF_SIZE);
+        GX_DMX_ERR("mca_malloc(%d) Error! \n", GX_SECTION_BUF_SIZE);
         return NULL;
     }
 
@@ -110,7 +82,7 @@ static MCA_VOID *gx_dmx_task(MCA_VOID *pParam)
     {
         mca_sleep(10);
 
-        gx_dmx_capture_semaphore();
+        gx_dmx_sem_wait();
 
         for (slot = 0; slot < GX_DMX_CH_NUM_MAX; slot++)
         {
@@ -134,17 +106,16 @@ static MCA_VOID *gx_dmx_task(MCA_VOID *pParam)
                             stCbData.m_hFilterHandle  = (MCA_HANDLE)(slot<<16 | j);
                             stCbData.m_u32Len         = u32Len;
                             stCbData.m_u8Section      = pu8Section;
-                            gx_data_dump(pu8Section, u32Len);
-                            gx_dmx_release_semaphore();
+                            gx_dmx_sem_post();
                             cb(&stCbData);
-                            gx_dmx_capture_semaphore();
+                            gx_dmx_sem_wait();
                         }                        
                     }
                 }
             }
         }
 
-        gx_dmx_release_semaphore();
+        gx_dmx_sem_post();
     }
 
     mca_free(pu8Section);
@@ -160,20 +131,21 @@ MCA_S32 mca_dmx_init(MCA_VOID)
 
     if (GxDemux_Init() < 0)
     {
-        GX_DMX_ERR("GxDemux_Init(...) fail");
+        GX_DMX_ERR("GxDemux_Init(...) fail!\n");
         return MCA_FAILURE;
     }
 
-    s32Ret = MCA_OS_TaskCreate(&hTask, GX_DMX_MODULE_NAME, (MCA_TASK_FUNC_T)gx_dmx_task, NULL, NULL, 18 * 1024, MCA_TASK_PRIORITY_NORMAL);
+    s32Ret = MCA_OS_TaskCreate(&hTask, GX_DMX_MODULE_NAME, (MCA_TASK_FUNC_T)gx_dmx_task, \
+                                        NULL, NULL, 18 * 1024, MCA_TASK_PRIORITY_NORMAL);
     if (MCA_SUCCESS != s32Ret)
     {
-        GX_DMX_ERR("MCA_OS_TaskCreate(...) = 0x%x.", s32Ret);
+        GX_DMX_ERR("MCA_OS_TaskCreate(...) = 0x%x!\n", s32Ret);
     }
     
     s32Ret = MCA_OS_SemCreate(&g_hGxDmxSemaphore, GX_DMX_MODULE_NAME, 1);
     if (MCA_SUCCESS != s32Ret)
     {
-        GX_DMX_ERR("MCA_OS_SemCreate(...) = 0x%x.", s32Ret);
+        GX_DMX_ERR("MCA_OS_SemCreate(...) = 0x%x!\n", s32Ret);
     }
 
     mca_memset(g_astGxChannel, 0x00, sizeof(GX_CHANNEL_t) * GX_DMX_CH_NUM_MAX);
@@ -205,13 +177,13 @@ MCA_S32 mca_dmx_channel_create(MCA_DMX_ID_t id, const MCA_DMX_CHAN_ATTR_t *pstCh
 
     if ((NULL == pstChAttr) || (NULL == phChannel) || (pstChAttr->m_pid > MCA_INVALID_PID))
     {
-        GX_DMX_ERR("Bad Param: pstChAttr = 0x%x, phChannel = 0x%x!\n", pstChAttr, phChannel);
+        GX_DMX_ERR("Bad Parameter: pstChAttr = 0x%x, phChannel = 0x%x!\n", pstChAttr, phChannel);
         return MCA_FAILURE;
     }
 
     *phChannel = MCA_INVALID_HANDLE;
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     for (slot = 0; slot < GX_DMX_CH_NUM_MAX; slot++)
     {
@@ -223,7 +195,7 @@ MCA_S32 mca_dmx_channel_create(MCA_DMX_ID_t id, const MCA_DMX_CHAN_ATTR_t *pstCh
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
         GX_DMX_ERR("Pool is full!\n");        
-        gx_dmx_release_semaphore();
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -231,7 +203,7 @@ MCA_S32 mca_dmx_channel_create(MCA_DMX_ID_t id, const MCA_DMX_CHAN_ATTR_t *pstCh
     if ((E_INVALID_HANDLE == hGxChannel) || (-1 == hGxChannel))
     { 
         GX_DMX_ERR("GxDemux_ChannelAllocate(%d, 0x%x) = %d\n", id, pstChAttr->m_pid, hGxChannel);
-        gx_dmx_release_semaphore();
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -240,7 +212,7 @@ MCA_S32 mca_dmx_channel_create(MCA_DMX_ID_t id, const MCA_DMX_CHAN_ATTR_t *pstCh
     g_astGxChannel[slot].m_hGxChannel = hGxChannel;
     mca_memcpy(&(g_astGxChannel[slot].m_stChanInfo), pstChAttr, sizeof(MCA_DMX_CHAN_ATTR_t)); 
 
-    gx_dmx_release_semaphore(); 
+    gx_dmx_sem_post(); 
 
     *phChannel = (MCA_HANDLE)slot;
 
@@ -255,16 +227,16 @@ MCA_S32 mca_dmx_channel_destory(MCA_HANDLE  hChannel)
 
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     if (MCA_FALSE == g_astGxChannel[slot].m_bUsed)
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -275,7 +247,7 @@ MCA_S32 mca_dmx_channel_destory(MCA_HANDLE  hChannel)
             s32GxRet = GxDemux_FilterFree(g_astGxChannel[slot].m_ahGxFlt[j]);
             if (s32GxRet < 0)
             {
-                GX_DMX_ERR("GxDemux_FilterFree(...) = %d\n", s32GxRet);
+                GX_DMX_ERR("GxDemux_FilterFree(...) = %d!\n", s32GxRet);
             }
             g_astGxChannel[slot].m_ahGxFlt[j] = E_INVALID_HANDLE;
         }
@@ -286,7 +258,7 @@ MCA_S32 mca_dmx_channel_destory(MCA_HANDLE  hChannel)
         s32GxRet = GxDemux_ChannelFree(g_astGxChannel[slot].m_hGxChannel);
         if (s32GxRet < 0)
         {
-            GX_DMX_ERR("GxDemux_ChannelFree(...) = %d\n", s32GxRet);
+            GX_DMX_ERR("GxDemux_ChannelFree(...) = %d!\n", s32GxRet);
         }        
         g_astGxChannel[slot].m_hGxChannel = E_INVALID_HANDLE;
     }
@@ -300,7 +272,7 @@ MCA_S32 mca_dmx_channel_destory(MCA_HANDLE  hChannel)
     g_astGxChannel[slot].m_stChanInfo.m_pid         = MCA_INVALID_PID;
     g_astGxChannel[slot].m_stChanInfo.m_cb          = NULL;
 
-    gx_dmx_release_semaphore();     
+    gx_dmx_sem_post();     
 
     return MCA_SUCCESS;
 }
@@ -313,24 +285,24 @@ MCA_S32 mca_dmx_channel_enable (MCA_HANDLE  hChannel)
 
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)!\n", slot, GX_DMX_CH_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     if (MCA_FALSE == g_astGxChannel[slot].m_bUsed)
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }    
 
     s32GxRet = GxDemux_ChannelEnable(g_astGxChannel[slot].m_hGxChannel);
     if (s32GxRet < 0)
     {
-        GX_DMX_ERR("GxDemux_ChannelEnable(%d) = %d\n", g_astGxChannel[slot].m_hGxChannel, s32GxRet);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("GxDemux_ChannelEnable(%d) = %d!\n", g_astGxChannel[slot].m_hGxChannel, s32GxRet);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
     for (j = 0; j < GX_FLT_NUM_MAX; j++)
@@ -340,12 +312,12 @@ MCA_S32 mca_dmx_channel_enable (MCA_HANDLE  hChannel)
             s32GxRet = GxDemux_FilterEnable(g_astGxChannel[slot].m_ahGxFlt[j]);
             if (s32GxRet < 0)
             {
-                GX_DMX_ERR("GxDemux_FilterEnable(...) = %d\n", s32GxRet);
+                GX_DMX_ERR("GxDemux_FilterEnable(...) = %d!\n", s32GxRet);
             }
         }
     }
 
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
 
     return MCA_SUCCESS;
 }
@@ -358,16 +330,16 @@ MCA_S32 mca_dmx_channel_disable(MCA_HANDLE  hChannel)
 
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)!\n", slot, GX_DMX_CH_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     if (MCA_FALSE == g_astGxChannel[slot].m_bUsed)
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -378,7 +350,7 @@ MCA_S32 mca_dmx_channel_disable(MCA_HANDLE  hChannel)
             s32GxRet = GxDemux_FilterDisable(g_astGxChannel[slot].m_ahGxFlt[j]);
             if (s32GxRet < 0)
             {
-                GX_DMX_ERR("GxDemux_FilterDisable(...) = %d\n", s32GxRet);
+                GX_DMX_ERR("GxDemux_FilterDisable(...) = %d!\n", s32GxRet);
             }
         }
     }
@@ -386,12 +358,12 @@ MCA_S32 mca_dmx_channel_disable(MCA_HANDLE  hChannel)
     s32GxRet = GxDemux_ChannelDisable(g_astGxChannel[slot].m_hGxChannel);
     if (s32GxRet < 0)
     {
-        GX_DMX_ERR("GxDemux_ChannelDisable(%d) = %d\n", g_astGxChannel[slot].m_hGxChannel, s32GxRet);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("GxDemux_ChannelDisable(%d) = %d!\n", g_astGxChannel[slot].m_hGxChannel, s32GxRet);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
 
     return MCA_SUCCESS;
 }
@@ -403,37 +375,37 @@ MCA_S32 mca_dmx_channel_set_pid(MCA_HANDLE  hChannel, MCA_U16 pid)
 
     if (pid > MCA_INVALID_PID)
     {
-        GX_DMX_ERR("Bad Param: pid(0x%x) > MCA_INVALID_PID(0x%x)\n", pid, MCA_INVALID_PID);
+        GX_DMX_ERR("Bad Parameter: pid(0x%x) > MCA_INVALID_PID(0x%x)!\n", pid, MCA_INVALID_PID);
         return MCA_FAILURE;
     }
 
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)!\n", slot, GX_DMX_CH_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     if (MCA_FALSE == g_astGxChannel[slot].m_bUsed)
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
     s32GxRet = GxDemux_ChannelSetPID(g_astGxChannel[slot].m_hGxChannel, pid, TRUE);// ToCheck: TRUE
     if (s32GxRet < 0)
     {
-        GX_DMX_ERR("GxDemux_ChannelSetPID(%d, 0x%x, TRUE) = %d\n", g_astGxChannel[slot].m_hGxChannel, \
+        GX_DMX_ERR("GxDemux_ChannelSetPID(%d, 0x%x, TRUE) = %d!\n", g_astGxChannel[slot].m_hGxChannel, \
                                                                    pid, s32GxRet);
-        gx_dmx_release_semaphore();
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
     
     g_astGxChannel[slot].m_stChanInfo.m_pid = pid;    
 
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
 
     return MCA_SUCCESS;
 }
@@ -444,22 +416,22 @@ MCA_S32 mca_dmx_channel_register_callback(MCA_HANDLE  hChannel, MCA_DMX_CB_t cb)
 
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)!\n", slot, GX_DMX_CH_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     if (MCA_FALSE == g_astGxChannel[slot].m_bUsed)
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
     g_astGxChannel[slot].m_stChanInfo.m_cb = cb;
 
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
 
     return MCA_SUCCESS;
 }
@@ -473,24 +445,24 @@ MCA_S32 mca_dmx_filter_create(MCA_HANDLE hChannel, const MCA_DMX_FILTER_t *pstFl
 
     if ((NULL == pstFltInfo) || (NULL == phFilter))
     {
-        GX_DMX_ERR("Bad Param: pstFltInfo = 0x%x, phFilter = 0x%x\n", pstFltInfo, phFilter);
+        GX_DMX_ERR("Bad Parameter: pstFltInfo = 0x%x, phFilter = 0x%x!\n", pstFltInfo, phFilter);
         return MCA_FAILURE;
     }
 
     *phFilter = MCA_INVALID_HANDLE;
     if (slot >= GX_DMX_CH_NUM_MAX)
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)\n", slot, GX_DMX_CH_NUM_MAX);
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d)!\n", slot, GX_DMX_CH_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     if ((MCA_FALSE == g_astGxChannel[slot].m_bUsed) || \
         (E_INVALID_HANDLE == g_astGxChannel[slot].m_hGxChannel))
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -504,15 +476,15 @@ MCA_S32 mca_dmx_filter_create(MCA_HANDLE hChannel, const MCA_DMX_FILTER_t *pstFl
     if (j >= GX_FLT_NUM_MAX)
     {
         GX_DMX_ERR("Filter Pool is full!\n");
-        gx_dmx_release_semaphore();
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
     hGxFilter = GxDemux_FilterAllocate(g_astGxChannel[slot].m_hGxChannel);
     if ((E_INVALID_HANDLE == hGxFilter) || (-1 == hGxFilter))
     {
-        GX_DMX_ERR("GxDemux_FilterAllocate(%d) = %d\n", g_astGxChannel[slot].m_hGxChannel, hGxFilter);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("GxDemux_FilterAllocate(%d) = %d!\n", g_astGxChannel[slot].m_hGxChannel, hGxFilter);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -525,7 +497,7 @@ MCA_S32 mca_dmx_filter_create(MCA_HANDLE hChannel, const MCA_DMX_FILTER_t *pstFl
                                        FALSE, pstFltInfo->m_u8Depth);
         if (s32GxRet < 0)
         {
-            GX_DMX_ERR("GxDemux_FilterSetup(...) = %d\n", s32GxRet);
+            GX_DMX_ERR("GxDemux_FilterSetup(...) = %d!\n", s32GxRet);
         }
     }
 
@@ -533,7 +505,7 @@ MCA_S32 mca_dmx_filter_create(MCA_HANDLE hChannel, const MCA_DMX_FILTER_t *pstFl
 
     *phFilter = (MCA_HANDLE)(slot<<16 | j);
 
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
     
     return MCA_SUCCESS;
 }
@@ -550,19 +522,19 @@ MCA_S32 mca_dmx_filter_set(MCA_HANDLE hFilter, const MCA_DMX_FILTER_t *pstFltInf
 
     if (NULL == pstFltInfo)
     {
-        GX_DMX_ERR("Bad Param: pstFltInfo = 0x%x\n", pstFltInfo);
+        GX_DMX_ERR("Bad Parameter: Filter handle is NULL!\n");
         return MCA_FAILURE;
     }
 
     if ((slot >= GX_DMX_CH_NUM_MAX) || (j >= GX_FLT_NUM_MAX))
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d), j(%d) >= GX_FLT_NUM_MAX(%d)\n", \
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d), j(%d) >= GX_FLT_NUM_MAX(%d)\n", \
                                                     slot, GX_DMX_CH_NUM_MAX, \
                                                     j, GX_FLT_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     hGxFilter = g_astGxChannel[slot].m_ahGxFlt[j];
 
@@ -570,8 +542,8 @@ MCA_S32 mca_dmx_filter_set(MCA_HANDLE hFilter, const MCA_DMX_FILTER_t *pstFltInf
         (E_INVALID_HANDLE == g_astGxChannel[slot].m_hGxChannel) ||
         (E_INVALID_HANDLE == hGxFilter))
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
@@ -583,12 +555,12 @@ MCA_S32 mca_dmx_filter_set(MCA_HANDLE hFilter, const MCA_DMX_FILTER_t *pstFltInf
                                    pstFltInfo->m_u8Depth);
     if (s32GxRet < 0)
     {
-        GX_DMX_ERR("GxDemux_FilterSetup(...) = %d\n", s32GxRet);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("GxDemux_FilterSetup(...) = %d!\n", s32GxRet);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
 
     return MCA_SUCCESS;
 }
@@ -605,13 +577,13 @@ MCA_S32 mca_dmx_filter_destory(MCA_HANDLE hFilter)
 
     if ((slot >= GX_DMX_CH_NUM_MAX) || (j >= GX_FLT_NUM_MAX))
     {
-        GX_DMX_ERR("Bad Param: slot(%d) >= GX_DMX_CH_NUM_MAX(%d), j(%d) >= GX_FLT_NUM_MAX(%d)\n", \
+        GX_DMX_ERR("Bad Parameter: slot(%d) >= GX_DMX_CH_NUM_MAX(%d), j(%d) >= GX_FLT_NUM_MAX(%d)\n", \
                                                     slot, GX_DMX_CH_NUM_MAX, \
                                                     j, GX_FLT_NUM_MAX);
         return MCA_FAILURE;
     }
 
-    gx_dmx_capture_semaphore();
+    gx_dmx_sem_wait();
 
     hGxFilter = g_astGxChannel[slot].m_ahGxFlt[j];
 
@@ -619,23 +591,23 @@ MCA_S32 mca_dmx_filter_destory(MCA_HANDLE hFilter)
         (E_INVALID_HANDLE == g_astGxChannel[slot].m_hGxChannel) ||
         (E_INVALID_HANDLE == hGxFilter))
     {
-        GX_DMX_ERR("This demux channel[%d] is not running\n", slot);
-        gx_dmx_release_semaphore();
+        GX_DMX_ERR("This demux channel[%d] is not running!\n", slot);
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
     s32GxRet = GxDemux_FilterFree(hGxFilter);
     if (s32GxRet < 0)
     {
-        GX_DMX_ERR("GxDemux_FilterFree(%d) = %d\n", hGxFilter, s32GxRet);
+        GX_DMX_ERR("GxDemux_FilterFree(%d) = %d!\n", hGxFilter, s32GxRet);
         g_astGxChannel[slot].m_ahGxFlt[j] = E_INVALID_HANDLE;
-        gx_dmx_release_semaphore();
+        gx_dmx_sem_post();
         return MCA_FAILURE;
     }
 
     g_astGxChannel[slot].m_ahGxFlt[j] = E_INVALID_HANDLE;
     
-    gx_dmx_release_semaphore();
+    gx_dmx_sem_post();
     
     return MCA_SUCCESS;
 }

@@ -21,11 +21,11 @@ extern "C " {
 
 typedef struct
 {
-	MCA_U16	m_u16PmtPid;
-	MCA_U16	m_u16ProgramNumber;
-	MCA_U16 m_u16TSID;
-	MCA_U16 m_u16VPid;
-	MCA_U16 m_u16APid;
+    MCA_U16 m_u16PmtPid;
+    MCA_U16 m_u16ProgramNumber;
+    MCA_U16 m_u16TSID;
+    MCA_U16 m_u16VPid;
+    MCA_U16 m_u16APid;
 } MCA_SERVICE_t;
 
 MCA_S32     mca_get_stb_id(MCA_U32* pu32Len, MCA_U8* pu8StbID);

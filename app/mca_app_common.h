@@ -24,7 +24,7 @@ extern MCA_CHAR aszCASMessage[][44];
 
 #define MCA_APP_DBG(fmt, args...)   \
     do{    \
-        mca_printf("----mca app->[%s]Line%d: ", __FUNCTION__, __LINE__);    \
+        mca_printf("[M.App.DBG][%s L%d]:", __FUNCTION__, __LINE__);    \
         mca_printf(fmt, ##args);    \
     }while(0)
 
