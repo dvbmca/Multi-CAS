@@ -6,18 +6,14 @@
 
 #define MS_UTL_DBG(fmt, args...)		\
     do{	\
-        mca_printf("----ms utils>[%s]Line%d: ", __FUNCTION__, __LINE__);	\
+        mca_printf("[Mstar.INFO ][%s L%d]:", __FUNCTION__, __LINE__);	\
         mca_printf(fmt, ##args);	\
     }while(0)
 
 #define MS_UTL_ERR(fmt, args...)		\
     do{	\
-        mca_printf("\033[1;40;31m");	\
-        mca_printf("\n################MS UTILS ERROR################\n");	\
-        mca_printf("[%s]Line%d:\n", __FUNCTION__, __LINE__);	\
+        mca_printf("[Mstar.ERROR][%s L%d]:", __FUNCTION__, __LINE__);	\
         mca_printf(fmt, ##args);	\
-        mca_printf("\n##############################################\n\n");	\
-        mca_printf("\033[0m\n");\
     }while(0)
 
 static MCA_BOOL g_b8GetChipIDSuccess = MCA_FALSE;
@@ -30,7 +26,7 @@ MCA_S32 mca_get_stb_id(MCA_U32* pu32Len, MCA_U8* pu8StbID)
 
     if ((NULL == pu32Len) || (NULL == pu8StbID))
     {
-        MS_UTL_ERR("Bad Param: pu32Len = 0x%x, pu8StbID = 0x%x!\n", pu32Len, pu8StbID);
+        MS_UTL_ERR("Bad Parameter: pu32Len = 0x%x, pu8StbID = 0x%x!\n", pu32Len, pu8StbID);
         return MCA_FAILURE;
     }
 

@@ -8,12 +8,8 @@
 
 #define MS_OS_ERR(fmt, args...) \
     do{    \
-        mca_printf("\033[1;40;31m");    \
-        mca_printf("\n################MS OS ERROR#################\n");    \
-        mca_printf("[%s]Line%d:\n", __FUNCTION__, __LINE__);    \
+        mca_printf("[Mstar.ERROR][%s L%d]:", __FUNCTION__, __LINE__);    \
         mca_printf(fmt, ##args);    \
-        mca_printf("\n############################################\n\n");    \
-        mca_printf("\033[0m\n");    \
     }while(0)
 
 #define MCA_MSG_CMD_SIZE    (4 * sizeof(MCA_U32))
@@ -28,17 +24,14 @@ MCA_S32 MCA_OS_TaskCreate(MCA_HANDLE *const pTaskHandle, const MCA_CHAR *szName,
     MS_S32  s32MsTaskID;
     void    *pStackBuff;
 
-    if ((NULL == pTaskHandle) || (NULL == szName) || (NULL == task_func) || !((enPri>=MCA_TASK_PRIORITY_LOWEST)&&(enPri<MCA_TASK_PRIORITY_BUTT)))
+    if ((NULL == pTaskHandle) || (NULL == szName) || (NULL == task_func) \
+    || !((enPri>=MCA_TASK_PRIORITY_LOWEST)&&(enPri<MCA_TASK_PRIORITY_BUTT)))
     {
-        MS_OS_ERR("Bad Param: pTaskHandle = 0x%x, szName = 0x%x, task_func = 0x%x, enPri = %d",   \
+        MS_OS_ERR("Bad Parameter: pTaskHandle = 0x%x, szName = 0x%x, task_func = 0x%x, enPri = %d!\n",   \
                                 (unsigned int)pTaskHandle, szName,  \
                                 (unsigned int)task_func, (unsigned int)enPri);
         return MCA_FAILURE;
     }
-
-/*    mca_printf("<IN> [%s]Line%d: pTaskHandle = 0x%x, szName = %s, task_func = 0x%x, u32StackSize = 0x%x, enPri = %d\n", \
-                __FUNCTION__, __LINE__, \
-                pTaskHandle, szName, task_func, u32StackSize, enPri);*/
 
     if (u32StackSize < 8192)
     {
@@ -47,21 +40,21 @@ MCA_S32 MCA_OS_TaskCreate(MCA_HANDLE *const pTaskHandle, const MCA_CHAR *szName,
     pStackBuff = MsOS_AllocateMemory(u32StackSize, gs32NonCachedPoolID);
     if (NULL == pStackBuff)
     {
-        MS_OS_ERR("MsOS_AllocateMemory(...) = NULL\n");
+        MS_OS_ERR("MsOS_AllocateMemory(...) = NULL!\n");
         return MCA_FAILURE;
     }
 
-    s32MsTaskID = MsOS_CreateTask((TaskEntry)task_func, (MS_U32)NULL, E_TASK_PRI_MEDIUM, TRUE, pStackBuff, (MS_U32)u32StackSize, (char *)szName);
+    s32MsTaskID = MsOS_CreateTask((TaskEntry)task_func, (MS_U32)NULL, E_TASK_PRI_MEDIUM, TRUE, \
+                                                pStackBuff, (MS_U32)u32StackSize, (char *)szName);
     if (s32MsTaskID < 0)
     {
         MsOS_FreeMemory(pStackBuff, gs32NonCachedPoolID);
-        MS_OS_ERR("MsOS_CreateTask(...) = %d\n", s32MsTaskID);
+        pStackBuff = NULL;
+        MS_OS_ERR("MsOS_CreateTask(...) = %d!\n", s32MsTaskID);
         return MCA_FAILURE;
     }
 
     *pTaskHandle = (MCA_HANDLE)s32MsTaskID;
-
- //   mca_printf("<OU> [%s]Line%d: *pTaskHandle = 0x%x\n", __FUNCTION__, __LINE__, *pTaskHandle);
 
     return MCA_SUCCESS;
 }
@@ -88,11 +81,9 @@ MCA_S32 MCA_OS_QueueCreate(MCA_HANDLE *const pHandle, const MCA_CHAR *szName, co
 
     if ((NULL == pHandle) || (NULL == szName))
     {
-        MS_OS_ERR("Bad Param: pHandle = 0x%x, szName = 0x%x\n", (unsigned int)pHandle, szName);
+        MS_OS_ERR("Bad Parameter: pHandle = 0x%x, szName = 0x%x\n", (unsigned int)pHandle, szName);
         return MCA_FAILURE;
     }
-
-//    mca_printf("<IN> [%s]Line%d: pHandle = 0x%x, szName = %s\n", __FUNCTION__, __LINE__, pHandle, szName);
 
     s32MsQueueID = MsOS_CreateQueue(NULL,
                                   MCA_MSG_CMD_SIZE * 64,
@@ -102,23 +93,20 @@ MCA_S32 MCA_OS_QueueCreate(MCA_HANDLE *const pHandle, const MCA_CHAR *szName, co
                                   (char *)szName);
     if (s32MsQueueID < 0)
     {
-        MS_OS_ERR("MsOS_CreateQueue(...) = %d\n", s32MsQueueID);
+        MS_OS_ERR("MsOS_CreateQueue(...) = %d!\n", s32MsQueueID);
         return MCA_FAILURE;
     }
 
     *pHandle = (MCA_HANDLE)s32MsQueueID;
-//    mca_printf("<OU> [%s]Line%d: *pHandle = 0x%x\n", __FUNCTION__, __LINE__, *pHandle);
 
     return MCA_SUCCESS;
 }
 
 MCA_S32 MCA_OS_QueueSend(const MCA_HANDLE handle, MCA_VOID *const pMsg, const MCA_U32 u32MsgSize)
 {
-//    mca_printf("<IN> [%s]Line%d: handle = 0x%x, pMsg = 0x%x, u32MsgSize = %d\n", __FUNCTION__, __LINE__, handle, pMsg, u32MsgSize);
-
     if (NULL == pMsg)
     {
-        MS_OS_ERR("Bad Param: pMsg is NULL\n");
+        MS_OS_ERR("Bad Parameter: Pointer is NULL!\n");
         return MCA_FAILURE;
     }
 
@@ -135,18 +123,16 @@ MCA_S32 MCA_OS_QueueReceive(const MCA_HANDLE handle, MCA_VOID *const pMsg, const
     MS_BOOL b8Status;
     MS_U32  u32ActualSize;
 
-//    mca_printf("<IN> [%s]Line%d: handle = 0x%x, pMsg = 0x%x, u32MsgSize = %d\n", __FUNCTION__, __LINE__, handle, pMsg, u32MsgSize);
-
     if (NULL == pMsg)
     {
-        MS_OS_ERR("Bad Param: pMsg is NULL\n");
+        MS_OS_ERR("Bad Parameter: Pointer is NULL!\n");
         return MCA_FAILURE;
     }
 
     b8Status = MsOS_RecvFromQueue((MS_S32)handle, pMsg, u32MsgSize, &u32ActualSize, MSOS_WAIT_FOREVER);
     if ((FALSE == b8Status) || (u32ActualSize != u32MsgSize))
     {
-        MS_OS_ERR("MsOS_RecvFromQueue(...) = %d, u32ActualSize = %d, u32MsgSize = %d\n", b8Status, u32ActualSize, u32MsgSize);
+        MS_OS_ERR("MsOS_RecvFromQueue(...) = %d, u32ActualSize = %d, u32MsgSize = %d!\n", b8Status, u32ActualSize, u32MsgSize);
         return MCA_FAILURE;
     }
 
@@ -158,18 +144,16 @@ MCA_S32 MCA_OS_QueueReceiveTimeout(const MCA_HANDLE handle, MCA_VOID *const pMsg
     MS_BOOL b8Status;
     MS_U32  u32ActualSize;
 
-//    mca_printf("<IN> [%s]Line%d: handle = 0x%x, pMsg = 0x%x, u32MsgSize = %d\n", __FUNCTION__, __LINE__, handle, pMsg, u32MsgSize);
-
     if (NULL == pMsg)
     {
-        MS_OS_ERR("Bad Param: pMsg is NULL\n");
+        MS_OS_ERR("Bad Parameter: Pointer is NULL!\n");
         return MCA_FAILURE;
     }
 
     b8Status = MsOS_RecvFromQueue((MS_S32)handle, pMsg, u32MsgSize, &u32ActualSize, u32Ms);
     if ((FALSE == b8Status) || (u32ActualSize != u32MsgSize))
     {
-        MS_OS_ERR("MsOS_RecvFromQueue(...) = %d, u32ActualSize = %d, u32MsgSize = %d\n", b8Status, u32ActualSize, u32MsgSize);
+        MS_OS_ERR("MsOS_RecvFromQueue(...) = %d, u32ActualSize = %d, u32MsgSize = %d!\n", b8Status, u32ActualSize, u32MsgSize);
         return MCA_FAILURE;
     }
 
@@ -182,22 +166,19 @@ MCA_S32 MCA_OS_SemCreate(MCA_HANDLE *const pSemHandle, const MCA_CHAR *szName, c
 
     if ((NULL == pSemHandle) || (NULL == szName))
     {
-        MS_OS_ERR("Bad Param: pSemHandle is 0x%x, szName = 0x%x!\n", (unsigned long)pSemHandle, (unsigned long)szName);
+        MS_OS_ERR("Bad Parameter: pSemHandle is 0x%x, szName = 0x%x!\n", (unsigned long)pSemHandle, (unsigned long)szName);
         return MCA_FAILURE;
     }
-
-//    mca_printf("<IN> [%s]Line%d: pSemHandle = 0x%x szName = %s, u32InitCount = %d\n", __FUNCTION__, __LINE__, pSemHandle, szName, u32InitCount);
 
     s32MsSem = MsOS_CreateSemaphore((MS_U32)u32InitCount, E_MSOS_FIFO, (char *)szName);
     if (s32MsSem < 0)
     {
-        MS_OS_ERR("MsOS_CreateSemaphore(...) = %d\n", s32MsSem);
+        MS_OS_ERR("MsOS_CreateSemaphore(...) = %d!\n", s32MsSem);
         *pSemHandle = MCA_INVALID_HANDLE;
         return MCA_FAILURE;
     }
 
     *pSemHandle = (MCA_HANDLE)s32MsSem;
- //   mca_printf("<OU> [%s]Line%d: *pSemHandle = 0x%x\n", __FUNCTION__, __LINE__, *pSemHandle);
 
     return MCA_SUCCESS;
 }
@@ -207,18 +188,16 @@ MCA_S32 MCA_OS_SemLock(const MCA_HANDLE handle)
     MS_BOOL b8Ret;
     MS_S32  s32MsSem = (MS_S32)handle;
 
-//    mca_printf("[%s]Line%d: handle = 0x%x\n", __FUNCTION__, __LINE__, handle);
-
     if (s32MsSem < 0)
     {
-        MS_OS_ERR("Bad Param: s32MsSem(%d) < 0\n", s32MsSem);
+        MS_OS_ERR("Bad Parameter: s32MsSem(%d) < 0!\n", s32MsSem);
         return MCA_FAILURE;
     }
     
     b8Ret = MsOS_ObtainSemaphore(s32MsSem, MSOS_WAIT_FOREVER);
     if (FALSE == b8Ret)
     {
-        MS_OS_ERR("MsOS_ObtainSemaphore(...) = FALSE \n");
+        MS_OS_ERR("MsOS_ObtainSemaphore(...) = FALSE!\n");
         return MCA_FAILURE;
     }
     
@@ -230,11 +209,9 @@ MCA_S32 MCA_OS_SemLockTimeout(const MCA_HANDLE handle, MCA_U32 ms)
     MS_BOOL b8Ret;
     MS_S32  s32MsSem = (MS_S32)handle;
 
-//    mca_printf("[%s]Line%d: handle = 0x%x\n", __FUNCTION__, __LINE__, handle);
-
     if (s32MsSem < 0)
     {
-        MS_OS_ERR("Bad Param: s32MsSem(%d) < 0\n", s32MsSem);
+        MS_OS_ERR("Bad Parameter: s32MsSem(%d) < 0!\n", s32MsSem);
         return MCA_FAILURE;
     }
     
@@ -257,18 +234,16 @@ MCA_S32 MCA_OS_SemUnlock(const MCA_HANDLE handle)
     MS_BOOL b8Ret;
     MS_S32  s32MsSem = (MS_S32)handle;
 
-//    mca_printf("[%s]Line%d: handle = 0x%x\n", __FUNCTION__, __LINE__, handle);
-
     if (s32MsSem < 0)
     {
-        MS_OS_ERR("Bad Param: s32MsSem(%d) < 0\n", s32MsSem);
+        MS_OS_ERR("Bad Parameter: s32MsSem(%d) < 0!\n", s32MsSem);
         return MCA_FAILURE;
     }
 
     b8Ret = MsOS_ReleaseSemaphore(s32MsSem);
     if (FALSE == b8Ret)
     {
-        MS_OS_ERR("MsOS_ObtainSemaphore(...) = FALSE \n");
+        MS_OS_ERR("MsOS_ObtainSemaphore(...) = FALSE!\n");
         return MCA_FAILURE;
     }
 
@@ -280,18 +255,16 @@ MCA_S32 MCA_OS_SemDestroy(const MCA_HANDLE handle)
     MS_BOOL b8Ret;
     MS_S32  s32MsSem = (MS_S32)handle;
 
-//    mca_printf("[%s]Line%d: handle = 0x%x\n", __FUNCTION__, __LINE__, handle);
-
     if (s32MsSem < 0)
     {
-        MS_OS_ERR("Bad Param: s32MsSem(%d) < 0\n", s32MsSem);
+        MS_OS_ERR("Bad Parameter: s32MsSem(%d) < 0!\n", s32MsSem);
         return MCA_FAILURE;
     }
 
     b8Ret = MsOS_DeleteSemaphore(s32MsSem);
     if (FALSE == b8Ret)
     {
-        MS_OS_ERR("MsOS_DeleteSemaphore(...) = FALSE \n");
+        MS_OS_ERR("MsOS_DeleteSemaphore(...) = FALSE!\n");
         return MCA_FAILURE;
     }
 

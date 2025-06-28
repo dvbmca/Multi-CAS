@@ -6,18 +6,14 @@
 
 #define MS_SMC_DBG(fmt, args...)        \
     do{    \
-    	mca_printf("----ms smc>[%s]Line%d: ", __FUNCTION__, __LINE__);    \
+    	mca_printf("[Mstar.INFO ][%s L%d]:", __FUNCTION__, __LINE__);    \
     	mca_printf(fmt, ##args);    \
     }while(0)
 
 #define MS_SMC_ERR(fmt, args...)        \
     do{    \
-    	mca_printf("\033[1;40;31m");    \
-    	mca_printf("\n################MS SMC ERROR################\n");    \
-    	mca_printf("[%s]Line%d:\n", __FUNCTION__, __LINE__);    \
+    	mca_printf("[Mstar.ERROR][%s L%d]:", __FUNCTION__, __LINE__);    \
     	mca_printf(fmt, ##args);    \
-    	mca_printf("\n############################################\n\n");    \
-    	mca_printf("\033[0m\n");\
     }while(0)
 
 #define MSTAR_DEFAULT_SC_ID    0
@@ -36,7 +32,7 @@ static void mstar_smartcard_notify(MS_U8 u8SCID, SC_Event eEvent)
         default:                enStatus = MCA_SMC_UNKNOWN; break;
     }
 
-    MS_SMC_DBG("u8SCID = %d, eEvent = %d\n\n", u8SCID, eEvent);
+    MS_SMC_DBG("u8SCID = %d, eEvent = %d!\n\n", u8SCID, eEvent);
 
     g_b8SmcIsInserted = (MCA_SMC_IN == enStatus) ? MCA_TRUE : MCA_FALSE;
     if (g_cbSmcCb)
@@ -59,7 +55,7 @@ MCA_S32 mca_smartcard_init(MCA_VOID)
     enErrCode = MDrv_SC_Open(MSTAR_DEFAULT_SC_ID, 0, &stSCParam, mstar_smartcard_notify);
     if (enErrCode != E_SC_OK)
     {
-        MS_SMC_ERR("MDrv_SC_Open(0) = 0x%x >>", enErrCode);
+        MS_SMC_ERR("MDrv_SC_Open(0) = 0x%x!\n", enErrCode);
         return MCA_FAILURE;
     }
     MsOS_DelayTask(200);
@@ -79,7 +75,7 @@ MCA_S32 mca_smartcard_reset(MCA_U8 slot, MCA_U8 *atr, MCA_U8 *pu8AtrLen)
 
     if ((NULL == atr) || (NULL == pu8AtrLen))
     {
-        MS_SMC_ERR("Bad Param: atr = 0x%x, pu8AtrLen = 0x%x!\n", atr, pu8AtrLen);
+        MS_SMC_ERR("Bad Parameter: atr = 0x%x, pu8AtrLen = 0x%x!\n", atr, pu8AtrLen);
         return MCA_FAILURE;
     }
 
@@ -96,7 +92,7 @@ MCA_S32 mca_smartcard_reset(MCA_U8 slot, MCA_U8 *atr, MCA_U8 *pu8AtrLen)
         MsOS_DelayTask(10);        
     }
 
-    MS_SMC_ERR("MDrv_SC_Reset_ATR(...) = 0x%x >> \n", enRet);
+    MS_SMC_ERR("MDrv_SC_Reset_ATR(...) = 0x%x!\n", enRet);
     return MCA_FAILURE;    
 }
 
@@ -123,13 +119,14 @@ MCA_S32 mca_smartcard_T0_command(MCA_U8 slot, MCA_U8 *pu8Send, MCA_U8 u8SendLen,
 {
     if ((NULL == pu8Send) || (0 == u8SendLen) || (NULL == pu8Rev) || (NULL == pu16RevLen))
     {
-        MS_SMC_ERR("Bad Param: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x.", pu8Send, u8SendLen, pu8Rev, pu16RevLen);
+        MS_SMC_ERR("Bad Parameter: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x!\n", \
+                                                                pu8Send, u8SendLen, pu8Rev, pu16RevLen);
         return MCA_FAILURE;
     }
     
     if (E_SC_OK != MDrv_SC_T0_SendRecv(MSTAR_DEFAULT_SC_ID, pu8Send, (MS_U16)u8SendLen, pu8Rev, pu16RevLen))
     {
-        MS_SMC_ERR("MDrv_SC_T0_SendRecv(...) error>>");
+        MS_SMC_ERR("MDrv_SC_T0_SendRecv(...) error!\n");
         return MCA_FAILURE;
     }
 
@@ -140,13 +137,14 @@ MCA_S32 mca_smartcard_T14_command(MCA_U8 slot, MCA_U8 *pu8Send, MCA_U8 u8SendLen
 {
     if ((NULL == pu8Send) || (0 == u8SendLen) || (NULL == pu8Rev) || (NULL == pu16RevLen))
     {
-        MS_SMC_ERR("Bad Param: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x.", pu8Send, u8SendLen, pu8Rev, pu16RevLen);
+        MS_SMC_ERR("Bad Parameter: pu8Send = 0x%x, u8SendLen = %d, pu8Rev = 0x%x, pu16RevLen = 0x%x!\n", \
+                                                            pu8Send, u8SendLen, pu8Rev, pu16RevLen);
         return MCA_FAILURE;
     }
 
     if (E_SC_OK != MDrv_SC_CTI_T14_SendRecv(MSTAR_DEFAULT_SC_ID, pu8Send, (MS_U16)u8SendLen, pu8Rev, pu16RevLen))
     {
-        MS_SMC_ERR("MDrv_SC_T0_SendRecv(...) error>>");
+        MS_SMC_ERR("MDrv_SC_T0_SendRecv(...) error!\n");
         return MCA_FAILURE;
     }
 
