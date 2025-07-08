@@ -68,10 +68,10 @@ Call MCA_Init(...) according to the CAS type you want when system startups:
 
 ```c
 int GxCore_Startup(int argc, char **argv) {
-	......
-	app_player_module_register();
+    ......
+    app_player_module_register();
 #if NETAPPS_SUPPORT
-	gx_netapps_event_init();
+    gx_netapps_event_init();
 #endif
 #if SW_FILTER_SUPPORT
     gx_search_softfilter_register(GX_PMT_SW_FILTER);
@@ -81,7 +81,7 @@ int GxCore_Startup(int argc, char **argv) {
 #endif
     
 //#######################Multi-CAS#######################
-	if (1)
+    if (1)
     {
         MCA_Param_t stParam;
 
@@ -95,11 +95,11 @@ int GxCore_Startup(int argc, char **argv) {
     }
 //#######################################################
 
-	GDI_RegisterJPEG_SOFT();
+    GDI_RegisterJPEG_SOFT();
     GDI_RegisterJPEG_SOFT_Special();
-	GDI_RegisterGIF();
+    GDI_RegisterGIF();
     GDI_RegisterPNG();
-	......
+    ......
 }
 ```
 
@@ -110,7 +110,7 @@ Call MCA_PostCAT(...) in solution/app/module/psi-si/app_cat.c
 ```c
 static private_parse_status _cat_private_function(uint8_t *p_section_data, uint32_t len)
 {
-	......
+    ......
 //#######################Multi-CAS#######################
 	MCA_PostCAT(0, p_section_data,len);
 //#######################################################
@@ -127,7 +127,7 @@ Call MCA_PostPMT(...) in solution/app/module/psi-si/app_pmt.c
 
 static private_parse_status pmt_private_function(uint8_t *p_section_data, uint32_t len)
 {
-	......
+    ......
 //#######################Multi-CAS#######################
     MCA_PostPMT(0, p_section_data,len);
 //#######################################################
