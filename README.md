@@ -88,7 +88,7 @@ int GxCore_Startup(int argc, char **argv) {
         mca_memset(&stParam, 0x00, sizeof(stParam));
         stParam.m_enLogLevel= MCA_TRACE_BASIC;
         stParam.m_enCASType = MCA_CAS_CONAX;
-		stParam.m_enPairType= MCA_PAIR_OFF;
+        stParam.m_enPairType= MCA_PAIR_OFF;
     
         MCA_Init(&stParam);
         mca_app_common_init();
@@ -112,7 +112,7 @@ static private_parse_status _cat_private_function(uint8_t *p_section_data, uint3
 {
     ......
 //#######################Multi-CAS#######################
-	MCA_PostCAT(0, p_section_data,len);
+    MCA_PostCAT(0, p_section_data,len);
 //#######################################################
 	
     return PRIVATE_SUBTABLE_OK;
