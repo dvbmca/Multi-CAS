@@ -27,6 +27,9 @@ extern "C " {
 #define MCA_E06_TIMEOUT                 0x80000006
 #define MCA_E07_ALREADY_EXIST           0x80000007
 #define MCA_E08_NOT_SUPPORT             0x80000008
+#define MCA_E09_NULL_PTR                0x80000009
+#define MCA_E10_LENGTH_IS_ZERO          0x8000000A
+#define MCA_E11_PID_IS_INVALID          0x8000000B
 
 #ifdef __cplusplus
 }

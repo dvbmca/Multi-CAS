@@ -3,6 +3,19 @@
 #include "mca_adaptation_files.h"
 #include "mca_app_common.h"
 
+MCA_CHAR mca_app_date_2_string(MCA_DATE_t stDate)
+{
+    static MCA_CHAR szString[24];
+
+    snprintf(szString, sizeof(szString), \
+                "%04d-%d-%d %02d:%02d:%02d", \
+                stDate.m_Year, stDate.m_Month, \
+                stDate.m_Day,  stDate.m_Hour,  \
+                stDate.m_Min,  stDate.m_Second);
+
+    return szString;
+}
+
 static void mca_sumavision_app_message_callback(MCA_CAS_TYPE_t enCASType, MCA_EVENT_TYPE_t enEvtType, MCA_VOID *pData)
 {
     MCA_MESSAGE_CODE_t enCode;

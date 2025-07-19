@@ -145,19 +145,6 @@ static MCA_VOID mca_usb_dump_callback(MCA_USB_EVENT_t enEvtType, MCA_S32 status,
     // Call sync(...)
 }
 
-MCA_CHAR mca_app_date_2_string(MCA_DATE_t stDate)
-{
-    static MCA_CHAR szString[24];
-
-    snprintf(szString, sizeof(szString), \
-                "%04d-%d-%d %02d:%02d:%02d", \
-                stDate.m_Year, stDate.m_Month, \
-                stDate.m_Day,  stDate.m_Hour,  \
-                stDate.m_Min,  stDate.m_Second);
-
-    return szString;
-}
-
 MCA_S32 mca_app_common_init(MCA_VOID)
 {
     MCA_S32 s32Ret;
@@ -165,8 +152,8 @@ MCA_S32 mca_app_common_init(MCA_VOID)
     MCA_RegisterEvent(MCA_EVENT_AUTHORIZATION_EXPIRES, mca_authorization_expires_callback);
     MCA_RegisterEvent(MCA_EVENT_ECM_INFO, mca_ecm_emm_info_callback);
     MCA_RegisterEvent(MCA_EVENT_EMM_INFO, mca_ecm_emm_info_callback);
-    //MCA_TS_RegisterEvent(MCA_TS_EVENT_PACKAGE,  mca_ts_module_progress);
-    //MCA_TS_RegisterEvent(MCA_TS_EVENT_DOWNLOAD, mca_ts_module_progress);
+    MCA_TS_RegisterEvent(MCA_TS_EVENT_PACKAGE,  mca_ts_module_progress);
+    MCA_TS_RegisterEvent(MCA_TS_EVENT_DOWNLOAD, mca_ts_module_progress);
     MCA_USB_RegisterEvent(MCA_USB_EVENT_DUMP_STB_ID, mca_usb_dump_callback);
 
     switch (MCA_GetCASType())
