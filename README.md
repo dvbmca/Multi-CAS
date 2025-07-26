@@ -1,5 +1,5 @@
 # Multi-CAS
-​     A STB middleware supports several CAS(conditional access system), such as Irdeto, NDS, Conax7, TVCAS4, Verimatrix, CTI, Griffin, CryptoGuard, DVCrypt, Crypton, Sumavision, Sochuang, ABV, Topreal, TongFang, VeriGuard and so on. Also it supports TS Package/download, Dolby(AC3) software decoding and CSA(Common Scrambling Algorithm) software  decryption & encryption.
+​     A STB middleware supports several CAS(conditional access system), such as Irdeto, NDS, Conax7, TVCAS4, Verimatrix, CTI, Griffin, CryptoGuard, DVCrypt, Crypton, Sumavision, Sochuang, ABV, Topreal, TongFang, VeriGuard and so on. Also it supports TS package/download, Dolby(AC3) software decoding and CSA(Common Scrambling Algorithm) software decryption & encryption.
 How to get support:
 Telegram: @Multi_CAS
 E-email: dvbmca@protonmail.com
@@ -153,6 +153,9 @@ MCA_S32 MCA_TS_Package(const MCA_PackageTs_t * const pstParam);
 MCA_S32 MCA_TS_Download(const MCA_DownloadTs_t * const pstParam);
 ```
 
-### 4. CSA decryption & encryption
+### 4. TS software decryption & encryption
 
-Todo
+```c
+MCA_S32 MCA_TS_Decrypt(MCA_PID pid, MCA_U8 *au8EvenKey, MCA_U8 *au8OddKey, MCA_U8 *ts, MCA_U32 len);
+MCA_S32 MCA_TS_Encrypt(MCA_PID pid, MCA_U8 *key, MCA_BOOL b8Even, MCA_U8 *ts, MCA_U32 len);
+```

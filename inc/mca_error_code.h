@@ -30,6 +30,7 @@ extern "C " {
 #define MCA_E09_NULL_PTR                0x80000009
 #define MCA_E10_LENGTH_IS_ZERO          0x8000000A
 #define MCA_E11_PID_IS_INVALID          0x8000000B
+#define MCA_E12_NO_MEMORY               0x8000000C
 
 #ifdef __cplusplus
 }

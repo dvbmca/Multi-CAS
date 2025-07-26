@@ -102,6 +102,22 @@ MCA_S32 MCA_TS_Package(const MCA_PackageTs_t * const pstParam);
 *************************************************************************************/
 MCA_S32 MCA_TS_Download(const MCA_DownloadTs_t * const pstParam);
 
+/*************************************************************************************
+    Function:
+    Params:     
+    Return:     
+    Desc:
+*************************************************************************************/
+MCA_S32 MCA_TS_Decrypt(MCA_PID pid, MCA_U8 *au8EvenKey, MCA_U8 *au8OddKey, MCA_U8 *ts, MCA_U32 len);
+
+/*************************************************************************************
+    Function:
+    Params:     
+    Return:     
+    Desc:
+*************************************************************************************/
+MCA_S32 MCA_TS_Encrypt(MCA_PID pid, MCA_U8 *key, MCA_BOOL b8Even, MCA_U8 *ts, MCA_U32 len);
+
 #ifdef __cplusplus
 }
 #endif
